@@ -41,15 +41,15 @@ data_combine =
 
 Write a paragraph of these data.
 
-```{r filter data}
-trash_data_filter = filter(trash_data, year == "2017")
+For Mr.Trash Wheel dataset, there are **`r nrow(trash_data)`** rows and **`r ncol(trash_data)`** columns. The number of observations is **`r nrow(trash_data)`**. Variables contain _`r names(trash_data)`_.  Examples of key variables are:
+`r knitr::kable(head(select(trash_data, dumpster, month, year, weight_tons, plastic_bottles)))`
 
-# The total precipitation in 2018 is `r sum(data_2018, total)`.
-#The median number o sports balls in a dumpster in 2017 is `r median(trash_data_filter, sports_balls)`
-```
+For the combined precipitation dataset of 2018 and 2019, there are **`r nrow(data_combine)`** rows and **`r ncol(data_combine)`** columns. The number of observations is **`r nrow(data_combine)`**. Variables contain _`r names(data_combine)`_. Examples of key variables are:
+`r knitr::kable(head(data_combine))`
 
-For Mr.Trash Wheel dataset, there are `r nrow(trash_data)` rows and `r ncol(trash_data)` columns. Variables contain _`r names(trash_data)`_.
-For the combined precipitation dataset of 2018 and 2019, there are `r nrow(data_combine)` rows and `r ncol(data_combine)` columns. Variables contain _`r names(data_combine)`_. 
+The total precipitation in 2018 is **`r sum(pull(filter(data_combine, year == 2018), total))`**. The median number of sports balls in a dumpster in 2019 is **`r median(pull(filter(trash_data, year == 2019),sports_balls))`**
+
+
 
 
 
