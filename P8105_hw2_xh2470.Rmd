@@ -1,6 +1,6 @@
 ---
 title: "P8105_hw2_xh2470"
-author: "Xueqing Huang"
+author: "Xueqing Huang xh2470"
 output: github_document
 ---
 
@@ -15,9 +15,10 @@ options(warn = -1)
 Read and clean the Mr.Trash Wheel sheet.
 
 ```{r}
-trash_data = read_excel("./data/Trash-Wheel-Collection-Totals-7-2021-sept.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N408") %>% 
+trash_data = read_excel("./data/Trash-Wheel-Collection-Totals-7-2021-sept.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N575") %>% 
   janitor::clean_names() %>% 
-  drop_na(dumpster) %>% 
+  drop_na(dumpster, month) %>%  # omit rows that do not include dumpster-specific data
+  select(dumpster:homes_powered) %>% 
   mutate(sports_balls = round(sports_balls, digits = 0))
 ```
 
@@ -42,13 +43,13 @@ data_combine =
 
 Write a paragraph of these data.
 
-For Mr.Trash Wheel dataset, there are **`r nrow(trash_data)`** rows and **`r ncol(trash_data)`** columns. The number of observations is **`r nrow(trash_data)`**. Variables contain _`r names(trash_data)`_.  Examples of key variables are:
+* For Mr.Trash Wheel dataset, there are **`r nrow(trash_data)`** rows and **`r ncol(trash_data)`** columns. The number of observations is **`r nrow(trash_data)`**. Variables contain _`r names(trash_data)`_.  Examples of key variables are:
 `r knitr::kable(head(select(trash_data, dumpster, month, year, weight_tons, plastic_bottles)))`
 
-For the combined precipitation dataset of 2018 and 2019, there are **`r nrow(data_combine)`** rows and **`r ncol(data_combine)`** columns. The number of observations is **`r nrow(data_combine)`**. Variables contain _`r names(data_combine)`_. Examples of key variables are:
+* For the combined precipitation dataset of 2018 and 2019, there are **`r nrow(data_combine)`** rows and **`r ncol(data_combine)`** columns. The number of observations is **`r nrow(data_combine)`**. Variables contain _`r names(data_combine)`_. Examples of key variables are:
 `r knitr::kable(head(data_combine))`
 
-The total precipitation in 2018 is **`r sum(pull(filter(data_combine, year == 2018), total))`**. The median number of sports balls in a dumpster in 2019 is **`r median(pull(filter(trash_data, year == 2019),sports_balls))`**.
+* The total precipitation in 2018 is **`r sum(pull(filter(data_combine, year == 2018), total))`**. The median number of sports balls in a dumpster in 2019 is **`r median(pull(filter(trash_data, year == 2019),sports_balls))`**.
 
 
 # Problem 2
@@ -82,14 +83,16 @@ Third, tidy the unemployment data.
 
 ```{r}
 unemployment = read_csv("./data/unemployment.csv") %>% 
-  janitor::clean_names() %>%
-  rename(January = jan, February = feb, March = mar, April = apr, May = may, June = jun, July = jul, August = aug, September = sep, October = oct, November = nov, December = dec) %>% 
-  pivot_longer(
-    January:December, 
-    names_to = "month",
-    values_to = "percentage"
-  ) %>% 
-  mutate(year = as.character(year)) %>% 
+    pivot_longer(
+      Jan:Dec, 
+      names_to = "month",
+      values_to = "percentage of unemployment"
+    ) %>% 
+    janitor::clean_names() %>% 
+    mutate(
+      month = month.name[as.numeric(match(month, month.abb))],
+      year = as.character(year)
+      ) %>% 
   arrange(year, month)
 ```
 
@@ -105,13 +108,79 @@ join = left_join(join_a, unemployment, by = c("year", "month"))
 
 Write a paragraph of these data.
 
-The dataset `pols_month` gives information about the number of democratic and republican politicians, which contain **`r nrow(pols_month)`** observations and **`r ncol(pols_month)`** variables. Variables contain _`r names(pols_month)`_. The time is from `r min(as.numeric(pull(pols_month, year)))` to `r max(as.numeric(pull(pols_month, year)))`, and the range is `r max(as.numeric(pull(pols_month, year))) - min(as.numeric(pull(pols_month, year)))`.
-The dataset `snp` reveals information about Standard & Poor’s stock market index (S&P), which contain **`r nrow(snp)`** observations and **`r ncol(snp)`** variables. Variables contain _`r names(snp)`_. The time is from `r min(as.numeric(pull(snp, year)))` to `r max(as.numeric(pull(snp, year)))`, and the range is `r max(as.numeric(pull(snp, year))) - min(as.numeric(pull(snp, year)))`.
-The dataset `unemployment` shows percentage of unemployment in a given time, which contain **`r nrow(unemployment)`** observations and **`r ncol(unemployment)`** variables. Variables contain _`r names(unemployment)`_. The time is from `r min(as.numeric(pull(unemployment, year)))` to `r max(as.numeric(pull(unemployment, year)))`, and the range is `r max(as.numeric(pull(unemployment, year))) - min(as.numeric(pull(unemployment, year)))`.
-The dataset `join` combines the above three datasets, and contains **`r nrow(join)`** observations and **`r ncol(join)`** variables.The time is from `r min(as.numeric(pull(join, year)))` to `r max(as.numeric(pull(join, year)))`, and the range is `r max(as.numeric(pull(join, year))) - min(as.numeric(pull(join, year)))`.
+* The dataset `pols_month` gives information about the number of democratic and republican politicians, which contain **`r nrow(pols_month)`** observations and **`r ncol(pols_month)`** variables. Variables contain _`r names(pols_month)`_. The time is from `r min(as.numeric(pull(pols_month, year)))` to `r max(as.numeric(pull(pols_month, year)))`, and the range is `r max(as.numeric(pull(pols_month, year))) - min(as.numeric(pull(pols_month, year)))`.
+
+* The dataset `snp` reveals information about Standard & Poor’s stock market index (S&P), which contain **`r nrow(snp)`** observations and **`r ncol(snp)`** variables. Variables contain _`r names(snp)`_. The time is from `r min(as.numeric(pull(snp, year)))` to `r max(as.numeric(pull(snp, year)))`, and the range is `r max(as.numeric(pull(snp, year))) - min(as.numeric(pull(snp, year)))`.
+
+* The dataset `unemployment` shows percentage of unemployment in a given time, which contain **`r nrow(unemployment)`** observations and **`r ncol(unemployment)`** variables. Variables contain _`r names(unemployment)`_. The time is from `r min(as.numeric(pull(unemployment, year)))` to `r max(as.numeric(pull(unemployment, year)))`, and the range is `r max(as.numeric(pull(unemployment, year))) - min(as.numeric(pull(unemployment, year)))`.
+
+
+* The dataset `join` combines the above three datasets, and contains **`r nrow(join)`** observations and **`r ncol(join)`** variables.The time is from `r min(as.numeric(pull(join, year)))` to `r max(as.numeric(pull(join, year)))`, and the range is `r max(as.numeric(pull(join, year))) - min(as.numeric(pull(join, year)))`.
 Examples of key variables are:
 `r knitr::kable(head(join))`
 
+# Problem 3
+
+First, load and tidy the data. 
+
+```{r}
+baby = read_csv("./data/Popular_Baby_Names.csv") %>%
+  janitor::clean_names() %>% 
+  dplyr::distinct() %>% 
+  mutate(
+    ethnicity = recode(ethnicity, 
+                       "ASIAN AND PACI" = "ASIAN AND PACIFIC ISLANDER",
+                       "BLACK NON HISP" = "BLACK NON HISPANIC", 
+                       "WHITE NON HISP" = "WHITE NON HISPANIC"),
+    childs_first_name = str_to_title(childs_first_name)
+  ) 
+
+```
+
+Produce table showing the rank in popularity of the name “Olivia” as a female baby name over time.
+
+```{r}
+Olivia = 
+  baby %>% 
+  filter(childs_first_name == "Olivia", gender == "FEMALE") %>%
+  select(year_of_birth, ethnicity, rank) %>% 
+  arrange(year_of_birth,ethnicity) %>% 
+  pivot_wider(
+    names_from = year_of_birth,
+    values_from = rank
+  )
+```
+
+`r knitr::kable(Olivia)`
 
 
+Produce a similar table showing the most popular name among male children over time.
+
+```{r}
+male_name = 
+  baby %>% 
+  filter(gender == "MALE", rank == 1) %>%
+  select(year_of_birth, ethnicity, childs_first_name) %>% 
+  arrange(year_of_birth,ethnicity) %>% 
+  pivot_wider(
+    names_from = year_of_birth,
+    values_from =  childs_first_name
+  )
+```
+
+`r knitr::kable(male_name)`
+
+
+Finally, for male, white non-hispanic children born in 2016, produce a scatter plot showing the number of children with a name (y axis) against the rank in popularity of that name (x axis).
+
+```{r}
+  baby %>% 
+  filter(gender == "MALE", ethnicity == "WHITE NON HISPANIC", year_of_birth == 2016) %>%  
+  ggplot(aes(x = rank, y = count)) + 
+  geom_point() +
+    labs(
+    x = "The rank in popularity of the name",
+    y = "The number of children with a name"
+    )
+```
 
